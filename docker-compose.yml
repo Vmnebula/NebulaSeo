@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  agent:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - GOOGLE_GENAI_USE_VERTEXAI=False
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - TARGET_SITE_URL=${TARGET_SITE_URL:-https://example.com}
+      - GSC_SITE_URL=${GSC_SITE_URL:-sc-domain:example.com}
+      - GITHUB_REPO=${GITHUB_REPO:-your-org/your-repo}
+    env_file:
+      - .env
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "3000:8080"
+    environment:
+      - NEXT_PUBLIC_AGENT_URL=http://localhost:8080
+      - AGENT_INTERNAL_URL=http://agent:8080
+    depends_on:
+      - agent
