@@ -1,0 +1,3 @@
+dashboard/** linguist-documentation
+*.json linguist-generated
+*.yaml linguist-generated
