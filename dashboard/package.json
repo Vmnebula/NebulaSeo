@@ -10,7 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.37.3",
+    "@clerk/nextjs": "^7.7.6",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-scroll-area": "^1.0.5",
