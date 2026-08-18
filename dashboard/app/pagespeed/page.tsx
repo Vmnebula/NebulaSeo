@@ -376,7 +376,7 @@ export default function PageSpeedPage() {
                   <div className="text-center py-16 text-muted-foreground">
                     <Clock className="h-16 w-16 mx-auto mb-4 opacity-30" />
                     <h3 className="text-lg font-semibold mb-2">No Field Data Loaded</h3>
-                    <p className="text-sm">Click "Load Field Data" to fetch CrUX metrics</p>
+                    <p className="text-sm">Click &quot;Load Field Data&quot; to fetch CrUX metrics</p>
                     <p className="text-xs mt-2 opacity-70">Note: CrUX data requires sufficient traffic volume</p>
                   </div>
                 )}

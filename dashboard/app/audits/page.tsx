@@ -283,7 +283,7 @@ export default function AuditsPage() {
               {analyzing && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
             </CardTitle>
             <CardDescription>
-              Click "Auto Fix" to create a PR that fixes the issue
+              Click &quot;Auto Fix&quot; to create a PR that fixes the issue
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -1,36 +1,59 @@
-# NebulaSEO Dashboard 📊
+# NebulaSEO Dashboard
 
-A modern, real-time observability and chat dashboard for the NebulaSEO Autonomous Agent. Built with Next.js 14, Tailwind CSS, and shadcn/ui.
+The web interface for the [NebulaSEO](../README.md) agent. Built with Next.js 14 (App
+Router), Tailwind CSS, and shadcn/ui. Authentication is handled by Clerk.
 
----
+## Pages
 
-## ✨ Features
+| Route | Purpose |
+| --- | --- |
+| `/` | Overview of search performance and recent agent activity. |
+| `/chat` | Natural-language chat with the agent. |
+| `/audits` | Technical audit results, with a control to open a fix pull request. |
+| `/pagespeed` | PageSpeed Insights scores and CrUX field metrics. |
+| `/keywords` | Keyword performance and ranking movement. |
+| `/competitors` | Competitor and SERP comparison. |
+| `/analytics` | Google Analytics 4 traffic reporting. |
+| `/schema` | JSON-LD builder and validation. |
+| `/content` | Meta tag and content generation. |
+| `/indexing` | Indexing API requests and status. |
+| `/github` | Repository browsing and open pull requests. |
+| `/actions` | Trigger and monitor automation runs. |
+| `/logs` | Agent request log. |
+| `/settings` | Configured data sources and connection status. |
 
-- 💬 **Interactive Agent Chat:** Direct natural-language chat interface connected to the Gemini 3 Pro agent.
-- ⚡ **PageSpeed & Core Web Vitals:** Live performance audits and CrUX field metrics.
-- 📊 **Search Performance Analytics:** Query, page, country, and device performance trends.
-- 🏷️ **Schema & Meta Tag Generator:** Visual builder for JSON-LD and OpenGraph tags.
-- 🤖 **Autonomous GitHub Fixes:** Trigger automated Pull Requests to fix SEO architecture directly in your repo.
-
----
-
-## 🚀 Quickstart
+## Development
 
 ```bash
-# 1. Install dependencies
-npm install
-
-# 2. Configure environment
-cp .env.example .env.local
-
-# 3. Run development server
+npm ci
 npm run dev
 ```
 
-Dashboard will be accessible at `http://localhost:3000`.
+The dashboard runs at <http://localhost:3000> and expects the agent API to be reachable
+at `NEXT_PUBLIC_AGENT_URL`, which defaults to `http://localhost:8080`.
 
----
+Configuration is read from the `.env` file in the repository root, not from this
+directory. See [`.env.example`](../.env.example). The variables this service uses are:
 
-## 📄 License
+| Variable | Required | Description |
+| --- | --- | --- |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | yes | Clerk publishable key. Required at build time as well as at runtime. |
+| `CLERK_SECRET_KEY` | yes | Clerk secret key, used by the auth middleware. |
+| `NEXT_PUBLIC_AGENT_URL` | no | Agent URL as reached from the browser. |
+| `AGENT_INTERNAL_URL` | no | Agent URL as reached from within the container. |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | no | Sign-in path. Defaults to `/sign-in`. |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | no | Redirect target after sign-in. |
 
-Distributed under the **GNU General Public License v3.0 (GPLv3)**.
+## Checks
+
+```bash
+npm run lint
+npm run build
+```
+
+Every route except `/sign-in` and `/api/health` requires an authenticated session, which
+is enforced in `middleware.ts`.
+
+## License
+
+GNU General Public License v3.0. See the [repository LICENSE](../LICENSE).

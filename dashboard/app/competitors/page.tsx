@@ -262,7 +262,7 @@ export default function CompetitorsPage() {
             {analyzing && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
           </CardTitle>
           <CardDescription>
-            Keywords competitors rank for that you don't. Click "Create Content" to auto-generate and create a PR.
+            Keywords competitors rank for that you don&apos;t. Click &quot;Create Content&quot; to auto-generate and create a PR.
           </CardDescription>
         </CardHeader>
         <CardContent>

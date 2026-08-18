@@ -212,7 +212,7 @@ export default function GithubPage() {
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <FolderTree className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Click "Browse Files" to explore the repository</p>
+                  <p>Click &quot;Browse Files&quot; to explore the repository</p>
                 </div>
               )}
             </CardContent>
@@ -321,7 +321,7 @@ export default function GithubPage() {
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <Github className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Click "Repo Info" card to load repository details</p>
+                  <p>Click &quot;Repo Info&quot; card to load repository details</p>
                 </div>
               )}
             </CardContent>
