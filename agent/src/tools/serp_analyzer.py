@@ -2,11 +2,10 @@
 SERP Analysis Tool - Analyzes search results for target keywords
 Uses Google Custom Search API or web scraping as fallback
 """
-import os
 import json
+import os
+
 import requests
-from typing import Dict, List, Optional
-from bs4 import BeautifulSoup
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -15,7 +14,7 @@ HEADERS = {
 }
 
 
-def analyze_serp(keyword: str, num_results: int = 10) -> Dict:
+def analyze_serp(keyword: str, num_results: int = 10) -> dict:
     """
     Analyzes SERP for a given keyword.
     In production, use Google Custom Search API for reliable results.
@@ -33,7 +32,7 @@ def analyze_serp(keyword: str, num_results: int = 10) -> Dict:
         return _generate_serp_analysis(keyword, num_results)
 
 
-def _fetch_serp_via_api(keyword: str, num_results: int, api_key: str, cx: str) -> Dict:
+def _fetch_serp_via_api(keyword: str, num_results: int, api_key: str, cx: str) -> dict:
     """
     Fetches real SERP data using Google Custom Search API.
     """
@@ -78,7 +77,7 @@ def _fetch_serp_via_api(keyword: str, num_results: int, api_key: str, cx: str) -
         }
 
 
-def _generate_serp_analysis(keyword: str, num_results: int) -> Dict:
+def _generate_serp_analysis(keyword: str, num_results: int) -> dict:
     """
     Generates realistic SERP analysis based on keyword patterns.
     In production, replace with actual API calls.
@@ -154,7 +153,7 @@ def _generate_serp_analysis(keyword: str, num_results: int) -> Dict:
     }
 
 
-def _detect_serp_features(api_data: Dict) -> Dict:
+def _detect_serp_features(api_data: dict) -> dict:
     """Detects SERP features from API response."""
     return {
         "ai_overview": False,  # Not directly available in Custom Search API
@@ -176,7 +175,7 @@ def _get_ranking_recommendation(intent: str, enterprise_count: int) -> str:
         return "Optimize for transactional intent with clear CTAs, trust signals, and competitive pricing visibility."
 
 
-def _identify_opportunities(keyword: str, intent: str, serp_features: Dict) -> List[str]:
+def _identify_opportunities(keyword: str, intent: str, serp_features: dict) -> list[str]:
     """Identifies ranking opportunities based on SERP analysis."""
     opportunities = []
     
@@ -200,11 +199,11 @@ def _identify_opportunities(keyword: str, intent: str, serp_features: Dict) -> L
     return opportunities
 
 
-def compare_with_competitors(your_url: str, keyword: str, competitor_urls: List[str]) -> Dict:
+def compare_with_competitors(your_url: str, keyword: str, competitor_urls: list[str]) -> dict:
     """
     Compares your page against competitors for a keyword.
     """
-    from src.tools.web_crawler import fetch_page_content, analyze_competitor
+    from src.tools.web_crawler import analyze_competitor
     
     # Analyze your page
     your_analysis = analyze_competitor(your_url, keyword)

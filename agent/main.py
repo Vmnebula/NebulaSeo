@@ -1,18 +1,20 @@
-import os
-import uvicorn
 import asyncio
-from fastapi import FastAPI, HTTPException, Query, BackgroundTasks, Header, Depends
+import os
+from typing import Any
+
+import uvicorn
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+
 from src.agent import get_agent, get_logs, log_request
-from src.tools.automation import run_and_store, get_automation_history
+from src.tools.automation import get_automation_history, run_and_store
 
 app = FastAPI(title="NebulaSEO Agent")
 
 AGENT_TOKEN = os.getenv("AGENT_TOKEN")
 
-async def verify_agent_token(authorization: Optional[str] = Header(None), x_agent_token: Optional[str] = Header(None)):
+async def verify_agent_token(authorization: str | None = Header(None), x_agent_token: str | None = Header(None)):
     """
     Verify incoming requests via Bearer token or X-Agent-Token header.
     If AGENT_TOKEN is configured in environment, strict token auth is enforced.
@@ -123,25 +125,25 @@ class LogEntry(BaseModel):
     type: str
     status: str
     message: str
-    request_id: Optional[str] = None
-    session_id: Optional[str] = None
-    tool: Optional[str] = None
-    args: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
-    duration_ms: Optional[int] = None
-    tools_called: Optional[List[str]] = None
-    tools_count: Optional[int] = None
-    response_length: Optional[int] = None
+    request_id: str | None = None
+    session_id: str | None = None
+    tool: str | None = None
+    args: dict[str, Any] | None = None
+    error: str | None = None
+    duration_ms: int | None = None
+    tools_called: list[str] | None = None
+    tools_count: int | None = None
+    response_length: int | None = None
 
 class LogsResponse(BaseModel):
-    logs: List[Dict[str, Any]]
+    logs: list[dict[str, Any]]
     total: int
 
 @app.get("/logs", response_model=LogsResponse)
 async def get_logs_endpoint(
     limit: int = Query(default=50, ge=1, le=100, description="Number of logs to return"),
-    type: Optional[str] = Query(default=None, description="Filter by log type (REQUEST, TOOL_CALL)"),
-    status: Optional[str] = Query(default=None, description="Filter by status (started, completed, error, success)")
+    type: str | None = Query(default=None, description="Filter by log type (REQUEST, TOOL_CALL)"),
+    status: str | None = Query(default=None, description="Filter by status (started, completed, error, success)")
 ):
     """
     Get recent request logs for the SEO Agent.
@@ -151,9 +153,9 @@ async def get_logs_endpoint(
     
     # Apply filters
     if type:
-        logs = [l for l in logs if l.get('type') == type]
+        logs = [entry for entry in logs if entry.get('type') == type]
     if status:
-        logs = [l for l in logs if l.get('status') == status]
+        logs = [entry for entry in logs if entry.get('status') == status]
     
     # Limit and reverse (newest first)
     logs = logs[-limit:][::-1]
@@ -188,9 +190,9 @@ class AutomationResponse(BaseModel):
     timestamp: str
     status: str
     duration_ms: int
-    summary: Optional[Dict[str, Any]] = None
-    steps: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    summary: dict[str, Any] | None = None
+    steps: dict[str, Any] | None = None
+    error: str | None = None
 
 @app.post("/automate", response_model=AutomationResponse, dependencies=[Depends(verify_agent_token)])
 async def automate_endpoint():

@@ -3,10 +3,10 @@ Content Generator Tool
 AI-powered content generation for SEO: meta tags, schema, blog posts
 """
 
-import os
 import json
+import os
 import re
-from typing import Optional, List
+
 from google import genai
 from google.genai import types
 
@@ -204,7 +204,7 @@ Return ONLY the JSON-LD object (no markdown, no explanation):
 
 def generate_blog_outline_fn(
     topic: str,
-    target_keywords: List[str],
+    target_keywords: list[str],
     target_audience: str = "business owners and entrepreneurs in Dubai"
 ) -> dict:
     """
@@ -276,7 +276,7 @@ Return ONLY a JSON object (no markdown):
 
 def generate_blog_content_fn(
     topic: str,
-    target_keywords: List[str],
+    target_keywords: list[str],
     outline: dict = None,
     word_count: int = 1500,
     tone: str = "professional yet approachable"
@@ -398,7 +398,7 @@ Return ONLY a JSON object:
 
 def suggest_internal_links_fn(
     page_content: str,
-    available_pages: List[dict]
+    available_pages: list[dict]
 ) -> dict:
     """
     Suggest internal links to add to a page.

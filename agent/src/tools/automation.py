@@ -12,42 +12,29 @@ Workflow:
 """
 
 import json
-import time
 import logging
+import time
 import traceback
-from datetime import datetime, timezone
-from typing import Dict, List, Any
-
-logger = logging.getLogger("SEOAutomation")
+from collections import deque
+from datetime import UTC, datetime
+from typing import Any
 
 # Import all tool functions
-from src.tools.bigquery_tool import (
-    analyze_keyword_drops_fn,
-    get_top_keywords_fn,
-    get_data_source_status_fn
-)
+from src.tools.bigquery_tool import analyze_keyword_drops_fn
 from src.tools.gsc_api_tool import (
+    gsc_live_country_breakdown_fn,
+    gsc_live_device_breakdown_fn,
     gsc_live_keywords_fn,
     gsc_live_pages_fn,
-    gsc_live_device_breakdown_fn,
-    gsc_live_country_breakdown_fn
 )
-from src.tools.pagespeed_tool import (
-    pagespeed_audit_fn,
-    core_web_vitals_fn
-)
-from src.tools.schema_validator_tool import validate_schema_on_page_fn
 from src.tools.indexing_tool import request_indexing_fn, sitemap_ping_fn
-from src.tools.web_crawler import fetch_page_content_fn
+from src.tools.pagespeed_tool import core_web_vitals_fn, pagespeed_audit_fn
+from src.tools.schema_validator_tool import validate_schema_on_page_fn
 
 # v5.3: Import SEO action functions for autonomous fixes
-from src.tools.seo_actions import (
-    add_schema_markup_fn,
-    fix_meta_tags_fn,
-    fix_heading_structure_fn
-)
-from src.tools.content_generator import generate_schema_markup_fn
+from src.tools.seo_actions import add_schema_markup_fn, fix_meta_tags_fn
 
+logger = logging.getLogger("SEOAutomation")
 
 # ============================================================================
 # AUTOMATION CONFIGURATION
@@ -125,7 +112,7 @@ SCHEMA_DATA_TEMPLATES = {
 }
 
 
-def _safe_call(fn_name: str, fn, *args, **kwargs) -> Dict[str, Any]:
+def _safe_call(fn_name: str, fn, *args, **kwargs) -> dict[str, Any]:
     """Safely call a tool function and return structured result."""
     start = time.time()
     try:
@@ -158,7 +145,7 @@ def _safe_call(fn_name: str, fn, *args, **kwargs) -> Dict[str, Any]:
 # STEP 1: DETECT — Scan for keyword drops & performance issues
 # ============================================================================
 
-def step_detect() -> Dict[str, Any]:
+def step_detect() -> dict[str, Any]:
     """Detect SEO issues: keyword drops, traffic changes, device/country shifts."""
     logger.info("[Automation] Step 1: DETECT — Scanning for issues...")
     
@@ -229,7 +216,7 @@ def step_detect() -> Dict[str, Any]:
 # STEP 2: ANALYZE — PageSpeed audits & schema validation
 # ============================================================================
 
-def step_analyze(top_urls: List[str]) -> Dict[str, Any]:
+def step_analyze(top_urls: list[str]) -> dict[str, Any]:
     """Analyze top pages: PageSpeed, Core Web Vitals, Schema validation."""
     logger.info(f"[Automation] Step 2: ANALYZE — Auditing {len(top_urls)} pages...")
     
@@ -291,7 +278,7 @@ def _url_to_filepath(url: str) -> str:
     return ""
 
 
-def step_fix(analyze_results: Dict[str, Any], detect_results: Dict[str, Any]) -> Dict[str, Any]:
+def step_fix(analyze_results: dict[str, Any], detect_results: dict[str, Any]) -> dict[str, Any]:
     """
     AUTONOMOUS FIX: Create GitHub PRs for all detected issues.
     
@@ -339,7 +326,7 @@ def step_fix(analyze_results: Dict[str, Any], detect_results: Dict[str, Any]) ->
                 if not file_path:
                     results["fixes_skipped"].append({
                         "url": url,
-                        "reason": f"No file mapping for URL",
+                        "reason": "No file mapping for URL",
                         "schema_type": schema_type
                     })
                     continue
@@ -451,7 +438,7 @@ def step_fix(analyze_results: Dict[str, Any], detect_results: Dict[str, Any]) ->
 # STEP 4: INDEX — Submit URLs for re-crawling & ping sitemap
 # ============================================================================
 
-def step_index(urls_to_index: List[str], fix_results: Dict[str, Any] = None) -> Dict[str, Any]:
+def step_index(urls_to_index: list[str], fix_results: dict[str, Any] = None) -> dict[str, Any]:
     """Submit URLs for re-indexing and ping sitemap. Also indexes any URLs that got PRs."""
     logger.info(f"[Automation] Step 4: INDEX — Submitting {len(urls_to_index)} URLs...")
     
@@ -482,21 +469,21 @@ def step_index(urls_to_index: List[str], fix_results: Dict[str, Any] = None) -> 
 # ============================================================================
 
 def compile_report(
-    detect_results: Dict,
-    analyze_results: Dict,
-    fix_results: Dict,
-    index_results: Dict,
+    detect_results: dict,
+    analyze_results: dict,
+    fix_results: dict,
+    index_results: dict,
     total_duration_ms: int
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compile a full automation run report."""
     
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     
     # Count successes/failures across ALL steps
     all_tool_calls = []
     for step_data in [detect_results, analyze_results, fix_results, index_results]:
         if isinstance(step_data, dict):
-            for key, val in step_data.items():
+            for val in step_data.values():
                 if isinstance(val, dict) and "status" in val:
                     all_tool_calls.append(val)
                 elif isinstance(val, list):
@@ -572,7 +559,7 @@ def compile_report(
 # MAIN ORCHESTRATOR — Run the full automation loop
 # ============================================================================
 
-def run_full_automation() -> Dict[str, Any]:
+def run_full_automation() -> dict[str, Any]:
     """
     Run the complete SEO automation loop.
     Called by /automate endpoint via Cloud Scheduler.
@@ -617,7 +604,7 @@ def run_full_automation() -> Dict[str, Any]:
         
         return {
             "run_id": run_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "status": "error",
             "duration_ms": total_duration,
             "error": str(e),
@@ -629,16 +616,15 @@ def run_full_automation() -> Dict[str, Any]:
 # AUTOMATION HISTORY (in-memory, last 50 runs)
 # ============================================================================
 
-from collections import deque
 AUTOMATION_HISTORY: deque = deque(maxlen=50)
 
-def run_and_store() -> Dict[str, Any]:
+def run_and_store() -> dict[str, Any]:
     """Run automation and store results in history."""
     report = run_full_automation()
     AUTOMATION_HISTORY.append(report)
     return report
 
-def get_automation_history(limit: int = 10) -> List[Dict[str, Any]]:
+def get_automation_history(limit: int = 10) -> list[dict[str, Any]]:
     """Get recent automation run history."""
     runs = list(AUTOMATION_HISTORY)
     return runs[-limit:][::-1]  # newest first

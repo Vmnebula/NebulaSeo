@@ -3,10 +3,10 @@ PageSpeed Insights API Tool
 Core Web Vitals (LCP, INP, CLS), performance scores, and optimization suggestions.
 Uses the free PageSpeed Insights API (no key required for basic use, key recommended for quota).
 """
-import os
 import json
-import requests
+import os
 
+import requests
 
 # Optional API key for higher quota (default: 25K requests/day with key, 25/day without)
 PSI_API_KEY = os.getenv("GOOGLE_PSI_API_KEY", os.getenv("GOOGLE_CUSTOM_SEARCH_API_KEY", ""))
@@ -203,9 +203,12 @@ def core_web_vitals_fn(url: str) -> str:
                 cls = round(cls_raw * 100) if cls_raw else None  # Convert to match CrUX scale
             
             def _rate(val, good, poor):
-                if val is None: return "N/A"
-                if val <= good: return "GOOD"
-                if val <= poor: return "NEEDS_IMPROVEMENT"
+                if val is None:
+                    return "N/A"
+                if val <= good:
+                    return "GOOD"
+                if val <= poor:
+                    return "NEEDS_IMPROVEMENT"
                 return "POOR"
             
             results[strategy] = {

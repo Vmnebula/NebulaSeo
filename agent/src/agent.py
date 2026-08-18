@@ -4,21 +4,85 @@ Uses google-genai SDK with Vertex AI authentication for Gemini 3
 Fully autonomous: detect → fix → index → report (no human in the loop)
 Cloud Scheduler runs twice daily (8AM & 8PM UTC)
 """
-import os
 import json
 import logging
+import os
 import time
-from datetime import datetime
-from typing import Dict, List, Any
 from collections import deque
+from datetime import UTC, datetime
+from typing import Any
+
 from google import genai
 from google.genai import types
 
 # ============================================================================
 # LOGGING CONFIGURATION
 # ============================================================================
-
 # Configure structured logging
+# Import our custom tools
+# v4.0: New tool imports
+from src.tools.analytics_tool import (
+    correlate_seo_with_engagement_fn,
+    get_organic_landing_pages_fn,
+    get_realtime_users_fn,
+    get_top_pages_fn,
+    get_traffic_overview_fn,
+    get_traffic_sources_fn,
+)
+from src.tools.bigquery_tool import (
+    analyze_keyword_drops_fn,
+    get_data_source_status_fn,
+    get_keyword_performance_fn,
+    get_top_keywords_fn,
+)
+from src.tools.content_generator import (
+    generate_alt_text_fn,
+    generate_blog_content_fn,
+    generate_blog_outline_fn,
+    generate_meta_description_fn,
+    generate_meta_title_fn,
+    generate_schema_markup_fn,
+    rewrite_for_seo_fn,
+    suggest_internal_links_fn,
+)
+from src.tools.github_tool import (
+    github_create_branch_fn,
+    github_create_pr_fn,
+    github_get_pr_status_fn,
+    github_get_repo_info_fn,
+    github_list_files_fn,
+    github_list_prs_fn,
+    github_read_file_fn,
+    github_update_file_fn,
+)
+
+# v5.0: New tool imports — GSC Live API, Indexing, PageSpeed, Schema Validator
+from src.tools.gsc_api_tool import (
+    gsc_live_country_breakdown_fn,
+    gsc_live_daily_trend_fn,
+    gsc_live_device_breakdown_fn,
+    gsc_live_keyword_pages_fn,
+    gsc_live_keywords_fn,
+    gsc_live_pages_fn,
+)
+from src.tools.gsc_tool import (
+    get_country_performance_fn,
+    get_device_breakdown_fn,
+    get_gsc_performance_fn,
+    get_page_performance_fn,
+)
+from src.tools.indexing_tool import batch_indexing_fn, get_indexing_status_fn, request_indexing_fn, sitemap_ping_fn
+from src.tools.pagespeed_tool import core_web_vitals_fn, pagespeed_audit_fn, pagespeed_compare_fn
+from src.tools.schema_validator_tool import validate_schema_json_fn, validate_schema_on_page_fn
+from src.tools.seo_actions import add_schema_markup_fn, create_blog_post_fn, fix_heading_structure_fn, fix_meta_tags_fn
+from src.tools.serp_analyzer import (
+    analyze_serp_fn,
+    compare_with_competitors_fn,
+    run_technical_audit_fn,
+    suggest_title_improvements_fn,
+)
+from src.tools.web_crawler import analyze_competitor_fn, crawl_sitemap_fn, fetch_page_content_fn
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s | %(levelname)s | %(name)s | %(message)s',
@@ -29,94 +93,17 @@ logger = logging.getLogger('SEOAgent')
 # In-memory log storage for UI (last 100 logs)
 REQUEST_LOGS: deque = deque(maxlen=100)
 
-def log_request(log_entry: Dict[str, Any]):
+def log_request(log_entry: dict[str, Any]):
     """Add a log entry to the in-memory store."""
-    log_entry['timestamp'] = datetime.utcnow().isoformat() + 'Z'
+    log_entry['timestamp'] = datetime.now(UTC).isoformat()
     REQUEST_LOGS.append(log_entry)
     logger.info(f"{log_entry.get('type', 'LOG')} | {log_entry.get('message', '')}")
 
-def get_logs(limit: int = 50) -> List[Dict[str, Any]]:
+def get_logs(limit: int = 50) -> list[dict[str, Any]]:
     """Get recent logs from the in-memory store."""
     logs = list(REQUEST_LOGS)
     return logs[-limit:] if limit else logs
 
-# Import our custom tools
-from src.tools.bigquery_tool import (
-    analyze_keyword_drops_fn, 
-    get_keyword_performance_fn,
-    get_top_keywords_fn,
-    get_data_source_status_fn
-)
-from src.tools.gsc_tool import (
-    get_gsc_performance_fn,
-    get_page_performance_fn,
-    get_country_performance_fn,
-    get_device_breakdown_fn
-)
-from src.tools.web_crawler import fetch_page_content_fn, crawl_sitemap_fn, analyze_competitor_fn
-from src.tools.serp_analyzer import analyze_serp_fn, compare_with_competitors_fn
-
-# v4.0: New tool imports
-from src.tools.analytics_tool import (
-    get_traffic_overview_fn,
-    get_top_pages_fn,
-    get_traffic_sources_fn,
-    get_organic_landing_pages_fn,
-    get_realtime_users_fn,
-    correlate_seo_with_engagement_fn
-)
-from src.tools.github_tool import (
-    github_list_files_fn,
-    github_read_file_fn,
-    github_create_branch_fn,
-    github_update_file_fn,
-    github_create_pr_fn,
-    github_get_pr_status_fn,
-    github_list_prs_fn,
-    github_get_repo_info_fn
-)
-from src.tools.content_generator import (
-    generate_meta_title_fn,
-    generate_meta_description_fn,
-    generate_schema_markup_fn,
-    generate_blog_outline_fn,
-    generate_blog_content_fn,
-    rewrite_for_seo_fn,
-    suggest_internal_links_fn,
-    generate_alt_text_fn
-)
-from src.tools.seo_actions import (
-    fix_meta_tags_fn,
-    add_schema_markup_fn,
-    create_blog_post_fn,
-    fix_heading_structure_fn
-)
-from src.tools.serp_analyzer import suggest_title_improvements_fn, run_technical_audit_fn
-
-# v5.0: New tool imports — GSC Live API, Indexing, PageSpeed, Schema Validator
-from src.tools.gsc_api_tool import (
-    gsc_live_keywords_fn,
-    gsc_live_pages_fn,
-    gsc_live_keyword_pages_fn,
-    gsc_live_daily_trend_fn,
-    gsc_live_device_breakdown_fn,
-    gsc_live_country_breakdown_fn
-)
-from src.tools.indexing_tool import (
-    request_indexing_fn,
-    batch_indexing_fn,
-    sitemap_ping_fn,
-    get_indexing_status_fn
-)
-from src.tools.pagespeed_tool import (
-    pagespeed_audit_fn,
-    pagespeed_compare_fn,
-    core_web_vitals_fn
-)
-from src.tools.schema_validator_tool import (
-    validate_schema_on_page_fn,
-    validate_schema_json_fn
-)
 
 # ============================================================================
 # TOOL FUNCTION MAPPING - Route tool calls to actual implementations

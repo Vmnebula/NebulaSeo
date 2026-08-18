@@ -4,9 +4,9 @@ Validates structured data (JSON-LD) on live pages.
 Uses Google's Rich Results Test API and schema.org validation.
 """
 import json
+
 import requests
 from bs4 import BeautifulSoup
-from typing import Dict, List
 
 # Known schema.org types that Google supports for rich results
 GOOGLE_SUPPORTED_SCHEMAS = {
@@ -158,7 +158,6 @@ def _suggest_schemas_for_page(soup: BeautifulSoup, url: str) -> list:
     """Suggest schema types based on page content."""
     suggestions = []
     text = soup.get_text().lower()
-    title = soup.title.string.lower() if soup.title and soup.title.string else ""
     url_lower = url.lower()
     
     # Always recommend these

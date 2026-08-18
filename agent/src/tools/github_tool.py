@@ -3,11 +3,14 @@ GitHub Integration Tool
 Create branches, commit changes, and open PRs for SEO fixes
 """
 
-import os
 import base64
+import logging
+import os
 from datetime import datetime
-from typing import Optional, List
+
 from github import Github, GithubException
+
+logger = logging.getLogger(__name__)
 
 # Configuration
 GITHUB_REPO = os.getenv("GITHUB_REPO", "your-org/your-website-repo")
@@ -21,7 +24,7 @@ def get_github_client():
         try:
             from google.cloud import secretmanager
             client = secretmanager.SecretManagerServiceClient()
-            name = f"projects/nebulaseo/secrets/github-token/versions/latest"
+            name = "projects/nebulaseo/secrets/github-token/versions/latest"
             response = client.access_secret_version(request={"name": name})
             token = response.payload.data.decode("UTF-8").strip()
             print(f"[GitHub] Token retrieved from Secret Manager (length: {len(token)})")
@@ -49,7 +52,6 @@ def github_list_files_fn(path: str = "", branch: str = "main") -> dict:
     Returns:
         List of files and directories
     """
-    import json
     try:
         print(f"[GitHub] Listing files at path='{path}' branch='{branch}'")
         repo = get_repo()
@@ -220,7 +222,7 @@ def github_create_pr_fn(
     branch: str,
     title: str,
     body: str,
-    labels: List[str] = None
+    labels: list[str] = None
 ) -> dict:
     """
     Create a Pull Request for SEO fixes.
@@ -251,8 +253,8 @@ def github_create_pr_fn(
         
         try:
             pr.add_to_labels(*labels)
-        except:
-            pass  # Labels might not exist
+        except Exception:
+            logger.debug("Could not apply labels %s; they may not exist", labels)
         
         return {
             "status": "success",
@@ -328,7 +330,7 @@ def github_list_prs_fn(state: str = "open") -> dict:
                 "created_at": pr.created_at.isoformat(),
                 "user": pr.user.login,
                 "url": pr.html_url,
-                "labels": [l.name for l in pr.labels]
+                "labels": [label.name for label in pr.labels]
             })
         
         return {

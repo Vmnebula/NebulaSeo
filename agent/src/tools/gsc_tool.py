@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 from google.cloud import bigquery
 
 # Table configurations — official GSC Bulk Data Export only

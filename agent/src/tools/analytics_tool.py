@@ -8,17 +8,17 @@ SETUP REQUIRED:
 """
 
 import os
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime
+
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import (
-    RunReportRequest,
     DateRange,
     Dimension,
-    Metric,
-    FilterExpression,
     Filter,
+    FilterExpression,
+    Metric,
     OrderBy,
+    RunReportRequest,
 )
 
 # GA4 Property ID for NebulaSEO

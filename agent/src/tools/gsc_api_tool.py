@@ -8,11 +8,12 @@ SETUP REQUIRED:
   Add SA your-sa@your-project.iam.gserviceaccount.com as Owner in:
   Google Search Console → Settings → Users and permissions → Add user
 """
-import os
 import json
-from datetime import datetime, timedelta
-from googleapiclient.discovery import build
+import os
+from datetime import UTC, datetime, timedelta
+
 from google.auth import default
+from googleapiclient.discovery import build
 
 # Site property — domain property format
 SITE_URL = os.getenv("GSC_SITE_URL", "sc-domain:example.com")
@@ -55,7 +56,7 @@ def gsc_live_keywords_fn(days: int = 7, limit: int = 20) -> str:
     """
     try:
         service = _get_gsc_service()
-        end_date = datetime.utcnow().date() - timedelta(days=3)  # GSC data has ~3-day lag
+        end_date = datetime.now(UTC).date() - timedelta(days=3)  # GSC data has ~3-day lag
         start_date = end_date - timedelta(days=days)
 
         response = service.searchanalytics().query(
@@ -99,7 +100,7 @@ def gsc_live_pages_fn(days: int = 7, limit: int = 20) -> str:
     """
     try:
         service = _get_gsc_service()
-        end_date = datetime.utcnow().date() - timedelta(days=3)
+        end_date = datetime.now(UTC).date() - timedelta(days=3)
         start_date = end_date - timedelta(days=days)
 
         response = service.searchanalytics().query(
@@ -143,7 +144,7 @@ def gsc_live_keyword_pages_fn(keyword: str, days: int = 28) -> str:
     """
     try:
         service = _get_gsc_service()
-        end_date = datetime.utcnow().date() - timedelta(days=3)
+        end_date = datetime.now(UTC).date() - timedelta(days=3)
         start_date = end_date - timedelta(days=days)
 
         response = service.searchanalytics().query(
@@ -196,7 +197,7 @@ def gsc_live_daily_trend_fn(keyword: str = None, days: int = 28) -> str:
     """
     try:
         service = _get_gsc_service()
-        end_date = datetime.utcnow().date() - timedelta(days=3)
+        end_date = datetime.now(UTC).date() - timedelta(days=3)
         start_date = end_date - timedelta(days=days)
 
         body = {
@@ -253,7 +254,7 @@ def gsc_live_device_breakdown_fn(days: int = 7) -> str:
     """
     try:
         service = _get_gsc_service()
-        end_date = datetime.utcnow().date() - timedelta(days=3)
+        end_date = datetime.now(UTC).date() - timedelta(days=3)
         start_date = end_date - timedelta(days=days)
 
         response = service.searchanalytics().query(
@@ -294,7 +295,7 @@ def gsc_live_country_breakdown_fn(days: int = 7, limit: int = 15) -> str:
     """
     try:
         service = _get_gsc_service()
-        end_date = datetime.utcnow().date() - timedelta(days=3)
+        end_date = datetime.now(UTC).date() - timedelta(days=3)
         start_date = end_date - timedelta(days=days)
 
         response = service.searchanalytics().query(

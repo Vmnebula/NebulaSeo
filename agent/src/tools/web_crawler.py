@@ -1,12 +1,14 @@
 """
 Web Crawler Tool - Fetches and analyzes actual website content
 """
-import os
 import json
+import logging
+from urllib.parse import urljoin, urlparse
+
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
-from typing import Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 # Headers to mimic a real browser
 HEADERS = {
@@ -15,7 +17,7 @@ HEADERS = {
     'Accept-Language': 'en-US,en;q=0.5',
 }
 
-def fetch_page_content(url: str) -> Dict:
+def fetch_page_content(url: str) -> dict:
     """
     Fetches a webpage and extracts SEO-relevant content.
     Returns structured data about the page.
@@ -119,8 +121,8 @@ def fetch_page_content(url: str) -> Dict:
                     for item in schema_data:
                         if isinstance(item, dict):
                             schema_types.append(item.get('@type', 'Unknown'))
-            except:
-                pass
+            except (ValueError, TypeError, AttributeError):
+                logger.debug("Skipping malformed JSON-LD block on %s", url)
         
         # Open Graph tags
         og_tags = {}
@@ -181,7 +183,7 @@ def fetch_page_content(url: str) -> Dict:
         }
 
 
-def crawl_sitemap(sitemap_url: str, limit: int = 50) -> Dict:
+def crawl_sitemap(sitemap_url: str, limit: int = 50) -> dict:
     """
     Fetches and parses a sitemap to get all URLs.
     """
@@ -224,7 +226,7 @@ def crawl_sitemap(sitemap_url: str, limit: int = 50) -> Dict:
         }
 
 
-def analyze_competitor(competitor_url: str, target_keyword: str) -> Dict:
+def analyze_competitor(competitor_url: str, target_keyword: str) -> dict:
     """
     Analyzes a competitor page for a specific keyword.
     """

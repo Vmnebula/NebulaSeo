@@ -1,9 +1,10 @@
-import pytest
 import json
 from unittest.mock import MagicMock, patch
-from src.tools.serp_analyzer import analyze_serp_fn, suggest_title_improvements_fn
-from src.tools.schema_validator_tool import validate_schema_json_fn
+
 from src.tools.github_tool import github_create_pr_fn
+from src.tools.schema_validator_tool import validate_schema_json_fn
+from src.tools.serp_analyzer import analyze_serp_fn, suggest_title_improvements_fn
+
 
 def test_serp_analyzer_structure():
     """Verify that SERP analyzer returns structured JSON with expected keys."""

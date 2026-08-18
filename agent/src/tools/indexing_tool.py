@@ -3,8 +3,8 @@ Google Indexing API + Sitemap Ping Tool
 Request Google to re-crawl URLs immediately after the agent pushes fixes.
 Also supports sitemap ping to notify Google of sitemap updates.
 """
-import os
 import json
+
 import requests
 from google.auth import default
 from google.auth.transport.requests import Request as AuthRequest
