@@ -13,5 +13,5 @@ lxml
 
 # v4.0: New dependencies
 PyGithub>=2.9.1
-google-analytics-data>=0.18.0
+google-analytics-data>=0.23.0
 google-cloud-secret-manager>=2.30.0
