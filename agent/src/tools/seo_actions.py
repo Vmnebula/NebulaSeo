@@ -3,23 +3,16 @@ SEO Actions Executor
 Complete workflows that combine analysis, content generation, and GitHub PRs
 """
 
-import os
 import re
 from datetime import datetime
-from typing import Optional, List, Dict
 
-from .github_tool import (
-    github_create_branch_fn,
-    github_read_file_fn,
-    github_update_file_fn,
-    github_create_pr_fn
-)
 from .content_generator import (
-    generate_meta_title_fn,
+    generate_blog_content_fn,
     generate_meta_description_fn,
+    generate_meta_title_fn,
     generate_schema_markup_fn,
-    generate_blog_content_fn
 )
+from .github_tool import github_create_branch_fn, github_create_pr_fn, github_read_file_fn, github_update_file_fn
 from .web_crawler import fetch_page_content_fn
 
 
@@ -27,7 +20,7 @@ def fix_meta_tags_fn(
     page_url: str,
     file_path: str,
     target_keyword: str,
-    issues: List[str]
+    issues: list[str]
 ) -> dict:
     """
     Complete workflow to fix meta tag issues on a page.
@@ -249,7 +242,7 @@ def add_schema_markup_fn(
 
 def create_blog_post_fn(
     topic: str,
-    target_keywords: List[str],
+    target_keywords: list[str],
     slug: str,
     author: str = "NebulaSEO Team"
 ) -> dict:
@@ -324,7 +317,7 @@ description: "{content_result['content'][:150].replace('"', "'")}"
 - **File:** `{file_path}`
 
 ### Internal Links Suggested
-{chr(10).join([f"- [{l['anchor']}]({l['target']})" for l in content_result.get('internal_link_suggestions', [])])}
+{chr(10).join([f"- [{link['anchor']}]({link['target']})" for link in content_result.get('internal_link_suggestions', [])])}
 
 ### SEO Checklist
 - [ ] Title optimized for primary keyword
@@ -367,7 +360,7 @@ description: "{content_result['content'][:150].replace('"', "'")}"
 def fix_heading_structure_fn(
     page_url: str,
     file_path: str,
-    issues: List[dict]
+    issues: list[dict]
 ) -> dict:
     """
     Fix heading structure issues (missing H1, multiple H1s, hierarchy problems).
@@ -420,6 +413,9 @@ def fix_heading_structure_fn(
             content=new_content,
             commit_message=f"SEO: Fix heading structure on {file_path}"
         )
+
+        if "error" in commit_result:
+            return commit_result
         
         # 4. Create PR
         pr_body = f"""## 🔍 SEO: Fix Heading Structure
@@ -441,7 +437,7 @@ def fix_heading_structure_fn(
         
         pr_result = github_create_pr_fn(
             branch=branch,
-            title=f"🔍 SEO: Fix heading structure",
+            title="🔍 SEO: Fix heading structure",
             body=pr_body,
             labels=["seo", "automated", "headings"]
         )
@@ -498,7 +494,7 @@ const jsonLd = {json.dumps(schema, indent=2)}
     return schema_script + content
 
 
-def _generate_meta_fix_pr_body(page_url: str, fixes: List[dict], keyword: str) -> str:
+def _generate_meta_fix_pr_body(page_url: str, fixes: list[dict], keyword: str) -> str:
     """Generate PR body for meta tag fixes"""
     
     changes_table = "| Type | Before | After |\n|------|--------|-------|\n"
